@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>Smash City | Arcade Edition</title>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="icon" type="image/png" href="jet.png" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="entry-popup">
+      <div class="ep-grid"></div>
+      <div class="ep-scanlines"></div>
+      <div class="ep-corner tl"></div>
+      <div class="ep-corner tr"></div>
+      <div class="ep-corner bl"></div>
+      <div class="ep-corner br"></div>
+      <div class="popup-box">
+        <div class="popup-tag">— ARCADE EDITION —</div>
+        <div class="popup-title">SMASH CITY</div>
+        <div class="popup-ver">Version: 1.0</div>
+        <div class="popup-line"></div>
+        <div class="popup-tagline">
+          DODGE the stars · CATCH the power-up · SURVIVE
+        </div>
+        <div class="popup-stats">
+          <div class="popup-stat">
+            <div class="popup-stat-val">10</div>
+            <div class="popup-stat-label">DMG / HIT</div>
+          </div>
+          <div class="popup-stat">
+            <div class="popup-stat-val">2%</div>
+            <div class="popup-stat-label">SUPER RATE</div>
+          </div>
+          <div class="popup-stat">
+            <div class="popup-stat-val">∞</div>
+            <div class="popup-stat-label">DISTANCE</div>
+          </div>
+        </div>
+        <button id="startBtn">LAUNCH GAME</button>
+        <div class="popup-hint">USE ← → ARROW KEYS TO MOVE</div>
+        <div class="popup-credit">
+          Game developed by
+          <a
+            href="https://phanikumar.vercel.app/"
+            target="_blank"
+            rel="noopener noreferrer"
+            >K.Phani Kumar</a
+          >
+        </div>
+      </div>
+    </div>
+
+    <div id="gameOver">
+      <div class="go-card" id="goCard">
+        <div class="go-card-top">
+          <img src="jet.png" alt="jet" class="go-card-jet" />
+          <div class="go-card-game">SMASH CITY</div>
+          <div class="go-card-title">GAME OVER</div>
+        </div>
+        <div class="go-card-body">
+          <div class="go-card-label">FINAL SCORE</div>
+          <div class="go-card-score" id="goScore">0</div>
+          <div class="go-card-dist" id="goDist">D: 0m</div>
+          <div class="go-card-line"></div>
+          <div class="go-card-btns">
+            <button class="go-btn restart" onclick="location.reload()">
+              RESTART
+            </button>
+            <button class="go-btn save" id="saveCardBtn">SAVE CARD</button>
+          </div>
+          <div class="go-card-credit">
+            Game developed by
+            <a
+              href="https://phanikumar.vercel.app/"
+              target="_blank"
+              rel="noopener noreferrer"
+              >K.Phani Kumar</a
+            >
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="game">
+      <div id="hud">
+        <div class="hud-row1">
+          <div class="title">
+            SMASH CITY <sub style="font-size: 8px"><b>Version</b>: 1.0</sub>
+          </div>
+          <div id="distanceCounter">D: 0m</div>
+        </div>
+        <div id="fuelContainer">
+          <div id="fuelLabel">FUEL <span id="fuelPct">100%</span></div>
+          <div id="fuelOuter">
+            <div id="fuelTrack"></div>
+            <div id="fuelGlow"></div>
+          </div>
+          <div id="fuelPercentText">▰▰▰▰▰▰▰▰▰▰</div>
+        </div>
+      </div>
+      <div id="superAlert">✦ POWER-UP INCOMING ✦</div>
+      <div id="jet"><img src="jet.png" alt="jet" /></div>
+    </div>
+    <div class="mobile-controls" id="mobileControls">
+      <div class="m-btn left" id="btnLeft">
+        <div class="m-arrow">←</div>
+        <div class="m-label">LEFT</div>
+      </div>
+      <div class="m-btn right" id="btnRight">
+        <div class="m-arrow">→</div>
+        <div class="m-label">RIGHT</div>
+      </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="gameScript.js"></script>
+  </body>
+</html>

@@ -1,0 +1,497 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Smash City</title>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Orbitron", sans-serif;
+      }
+      body {
+        width: 100%;
+        height: 100vh;
+        overflow: hidden;
+        background: #000;
+        color: #fff;
+        transition: background 0.3s ease;
+      }
+      .game {
+        width: 100%;
+        height: 100vh;
+        position: relative;
+        overflow: hidden;
+      }
+      .title {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        font-size: 24px;
+        z-index: 10;
+      }
+      .entry-popup {
+        position: fixed;
+        inset: 0;
+        background: #000;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 999;
+      }
+      .popup-box {
+        width: 400px;
+        background: #111;
+        border: 1px solid #333;
+        padding: 40px;
+        text-align: center;
+      }
+      button {
+        padding: 14px 40px;
+        border: 1px solid #fff;
+        background: #fff;
+        color: #000;
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        letter-spacing: 2px;
+        transition: 0.3s;
+      }
+      button:hover {
+        opacity: 0.8;
+        transform: scale(1.03);
+      }
+      #jet {
+        position: absolute;
+        bottom: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 120px;
+        height: 120px;
+        transition: left 0.08s linear;
+        z-index: 5;
+      }
+      #jet img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        pointer-events: none;
+        user-select: none;
+      }
+      .dot {
+        position: absolute;
+        top: -100px;
+        font-size: 40px;
+        color: #fff;
+        pointer-events: none;
+        font-weight: 900;
+        line-height: 1;
+      }
+
+      /* ── FUEL BAR ── */
+      #fuelContainer {
+        position: absolute;
+        top: 16px;
+        right: 20px;
+        width: 260px;
+        z-index: 10;
+      }
+      #fuelLabel {
+        font-size: 9px;
+        letter-spacing: 3px;
+        color: #666;
+        margin-bottom: 5px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      #fuelLabel span {
+        color: #fff;
+        font-size: 11px;
+        font-weight: 700;
+      }
+      #fuelOuter {
+        width: 100%;
+        height: 22px;
+        background: #0a0a0a;
+        border: 1px solid #2a2a2a;
+        padding: 3px;
+        position: relative;
+        clip-path: polygon(
+          0 0,
+          calc(100% - 8px) 0,
+          100% 8px,
+          100% 100%,
+          8px 100%,
+          0 calc(100% - 8px)
+        );
+      }
+      #fuelTrack {
+        width: 100%;
+        height: 100%;
+        background: #111;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        gap: 2px;
+        align-items: stretch;
+      }
+      .fuel-segment {
+        flex: 1;
+        background: #00ff88;
+        transition:
+          background 0.4s ease,
+          opacity 0.4s ease,
+          box-shadow 0.4s ease;
+        position: relative;
+      }
+      .fuel-segment.dead {
+        background: #1a1a1a;
+        box-shadow: none;
+        opacity: 0.4;
+      }
+      .fuel-segment.warn {
+        background: #ff8800;
+      }
+      .fuel-segment.danger {
+        background: #ff2222;
+        animation: pulse-danger 0.6s infinite alternate;
+      }
+      @keyframes pulse-danger {
+        from {
+          opacity: 1;
+        }
+        to {
+          opacity: 0.4;
+        }
+      }
+      #fuelGlow {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        pointer-events: none;
+        transition: box-shadow 0.4s ease;
+      }
+      #fuelPercentText {
+        font-size: 9px;
+        letter-spacing: 2px;
+        color: #444;
+        margin-top: 4px;
+        text-align: right;
+      }
+      /* scan-line shimmer over bar */
+      #fuelOuter::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: repeating-linear-gradient(
+          90deg,
+          transparent 0,
+          transparent 6px,
+          rgba(0, 0, 0, 0.18) 6px,
+          rgba(0, 0, 0, 0.18) 7px
+        );
+        pointer-events: none;
+        z-index: 2;
+      }
+
+      /* super-star alert banner */
+      #superAlert {
+        position: absolute;
+        top: 70px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.8);
+        border: 1px solid #fff;
+        padding: 6px 20px;
+        font-size: 11px;
+        letter-spacing: 3px;
+        color: #fff;
+        display: none;
+        z-index: 20;
+        animation: blink 0.5s infinite alternate;
+      }
+      @keyframes blink {
+        from {
+          opacity: 1;
+        }
+        to {
+          opacity: 0.3;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="entry-popup">
+      <div class="popup-box">
+        <h1 style="font-size: 42px; margin-bottom: 15px; letter-spacing: 4px">
+          SMASH CITY
+        </h1>
+        <p style="color: #777; margin-bottom: 30px; font-size: 14px">
+          Dodge dots. Smash words. Survive.
+        </p>
+        <button id="startBtn">START GAME</button>
+      </div>
+    </div>
+
+    <div
+      id="gameOver"
+      style="
+        position: fixed;
+        inset: 0;
+        background: #000;
+        display: none;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        z-index: 9999;
+      "
+    >
+      <div
+        id="displayDistance"
+        style="
+          color: #777;
+          font-size: 18px;
+          margin-bottom: 10px;
+          letter-spacing: 2px;
+        "
+      >
+        DISTANCE : 0m
+      </div>
+      <div
+        id="displayScore"
+        style="
+          color: #fff;
+          font-size: 26px;
+          margin-bottom: 25px;
+          letter-spacing: 3px;
+          font-weight: 700;
+        "
+      >
+        SCORE : 0
+      </div>
+      <h1
+        style="
+          font-size: 70px;
+          color: #fff;
+          letter-spacing: 6px;
+          margin-bottom: 30px;
+        "
+      >
+        GAME OVER
+      </h1>
+      <button
+        onclick="location.reload()"
+        style="
+          padding: 14px 40px;
+          border: 1px solid #fff;
+          background: #fff;
+          color: #000;
+          font-size: 14px;
+          font-weight: 700;
+          cursor: pointer;
+          letter-spacing: 2px;
+        "
+      >
+        RESTART
+      </button>
+    </div>
+    <div class="game">
+      <div class="title">
+        SMASH CITY <sub style="font-size: 10px"><b>V</b>:1.0</sub>
+      </div>
+      <!-- Fuel Bar -->
+      <div id="fuelContainer">
+        <div id="fuelLabel">FUEL CELL <span id="fuelPct">100%</span></div>
+        <div id="fuelOuter">
+          <div id="fuelTrack"></div>
+          <div id="fuelGlow"></div>
+        </div>
+        <div id="fuelPercentText">▰▰▰▰▰▰▰▰▰▰</div>
+      </div>
+      <!-- Distance -->
+      <div
+        id="distanceCounter"
+        style="
+          position: absolute;
+          top: 20px;
+          right: 300px;
+          padding: 10px 18px;
+          background: #111;
+          border: 1px solid #444;
+          color: #fff;
+          font-size: 14px;
+          letter-spacing: 2px;
+          font-weight: 700;
+        "
+      >
+        Distance: 0m
+      </div>
+      <!-- Super star alert -->
+      <div id="superAlert">✦ POWER-UP INCOMING ✦</div>
+      <div id="jet">
+        <img src="jet.png" alt="jet" />
+      </div>
+    </div>
+    <script>
+      const TOTAL_SEGMENTS = 10;
+      function buildSegments() {
+        const track = $("#fuelTrack");
+        track.empty();
+        for (let i = 0; i < TOTAL_SEGMENTS; i++) {
+          track.append('<div class="fuel-segment" id="seg' + i + '"></div>');
+        }
+      }
+      function updateFuelBar(hitCount) {
+        const pct = Math.max(0, 100 - hitCount);
+        const activeSegs = Math.ceil((pct / 100) * TOTAL_SEGMENTS);
+        $("#fuelPct").text(pct + "%");
+        let dots = "";
+        for (let i = 0; i < TOTAL_SEGMENTS; i++) {
+          dots += i < activeSegs ? "▰" : "▱";
+        }
+        $("#fuelPercentText").text(dots);
+        for (let i = 0; i < TOTAL_SEGMENTS; i++) {
+          const seg = $("#seg" + i);
+          seg.removeClass("dead warn danger");
+          if (i >= activeSegs) {
+            seg.addClass("dead");
+          } else if (pct <= 30) {
+            seg.addClass("danger");
+          } else if (pct <= 60) {
+            seg.addClass("warn");
+          }
+        }
+        if (pct > 60) {
+          $("#fuelGlow").css(
+            "box-shadow",
+            "inset 0 0 8px rgba(0,255,136,0.25)",
+          );
+        } else if (pct > 30) {
+          $("#fuelGlow").css(
+            "box-shadow",
+            "inset 0 0 8px rgba(255,136,0,0.25)",
+          );
+        } else {
+          $("#fuelGlow").css(
+            "box-shadow",
+            "inset 0 0 10px rgba(255,34,34,0.35)",
+          );
+        }
+      }
+      function refillFuelBar() {
+        for (let i = 0; i < TOTAL_SEGMENTS; i++) {
+          $("#seg" + i).removeClass("dead warn danger");
+        }
+        $("#fuelPct").text("100%");
+        $("#fuelPercentText").text("▰▰▰▰▰▰▰▰▰▰");
+        $("#fuelGlow").css("box-shadow", "inset 0 0 12px rgba(0,255,136,0.5)");
+      }
+      $(document).ready(function () {
+        buildSegments();
+        updateFuelBar(0);
+        $(".title").hide();
+        $("#startBtn").click(function () {
+          $(".entry-popup").fadeOut(500, function () {
+            $(this).remove();
+            $(".title").fadeIn(500);
+          });
+        });
+        let jet = $("#jet");
+        let left = 50;
+        let hitCount = 0;
+        let distance = 0;
+        $(document).on("keydown", function (e) {
+          if (e.key === "ArrowLeft" && left > 0) left -= 2;
+          if (e.key === "ArrowRight" && left < 100) left += 2;
+          jet.css("left", left + "%");
+        });
+        setInterval(function () {
+          if (hitCount >= 100) return;
+          let isSuper = Math.random() < 0.02;
+          let dot;
+          if (isSuper) {
+            $("#superAlert").fadeIn(200);
+            setTimeout(() => $("#superAlert").fadeOut(400), 1500);
+            dot = $(
+              `<div class="dot superStar" style="position:absolute;top:-100px;font-size:60px;font-weight:900;line-height:1;pointer-events:none;background:linear-gradient(45deg,#4285F4,#9B72FF,#D96570,#F2A60C);-webkit-background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 0 14px rgba(255,255,255,.7));animation:spin 1s linear infinite;">✦</div>`,
+            );
+            $("head").append(
+              "<style>@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}</style>",
+            );
+          } else {
+            dot = $(
+              `<div class="dot" style="position:absolute;top:-100px;font-size:40px;color:#fff;font-weight:900;line-height:1;pointer-events:none;">✦</div>`,
+            );
+          }
+          let randomLeft = Math.random() * (window.innerWidth - 50);
+          dot.css({ left: randomLeft + "px" });
+          $(".game").append(dot);
+          let collision = setInterval(function () {
+            if (!dot.length) return;
+            let dotOffset = dot.offset();
+            let jetOffset = jet.offset();
+            let dotWidth = dot.width();
+            let dotHeight = dot.height();
+            let jetWidth = jet.width();
+            let jetHeight = jet.height();
+            if (
+              dotOffset.left < jetOffset.left + jetWidth &&
+              dotOffset.left + dotWidth > jetOffset.left &&
+              dotOffset.top < jetOffset.top + jetHeight &&
+              dotOffset.top + dotHeight > jetOffset.top
+            ) {
+              if (dot.hasClass("superStar")) {
+                hitCount = 0;
+                refillFuelBar();
+                $("body").css("background", "#003322");
+                setTimeout(function () {
+                  $("body").css("background", "#000");
+                }, 300);
+              } else {
+                $("body").css("background", "red");
+                hitCount += 10;
+                updateFuelBar(hitCount);
+                setTimeout(function () {
+                  $("body").css("background", "#000");
+                }, 150);
+              }
+              $("#displayDistance").text("DISTANCE : " + distance + "m");
+              $("#displayScore").text("SCORE : " + distance);
+
+              if (hitCount >= 100) {
+                $("#gameOver").css("display", "flex");
+                $(".dot").stop();
+                $(document).off("keydown");
+              }
+              dot.remove();
+              clearInterval(collision);
+            }
+            if (dotOffset.top > window.innerHeight) {
+              dot.remove();
+              clearInterval(collision);
+            }
+          }, 10);
+          dot.animate({ top: "120vh" }, 3000, "linear", function () {
+            $(this).remove();
+            clearInterval(collision);
+          });
+        }, 300);
+        setInterval(function () {
+          if (hitCount >= 100) return;
+          distance += 1;
+          $("#distanceCounter").text("Distance: " + distance + "m");
+        }, 100);
+      });
+    </script>
+  </body>
+</html>
