@@ -87,6 +87,14 @@ $(document).ready(function () {
         let distance = 0;
         let pressingLeft = false;
         let pressingRight = false;
+        let speedMultiplier = 1;
+        const SPEED_INTERVAL_MS = 10000;
+        const SPEED_INCREMENT = 0.15;
+        const SPEED_CAP = 3.0;
+        const speedRampInterval = setInterval(function () {
+            if (hitCount >= 100) return;
+            speedMultiplier = Math.min(SPEED_CAP, speedMultiplier + SPEED_INCREMENT);
+        }, SPEED_INTERVAL_MS);
         $(document).on("keydown", function (e) {
             if (e.key === "ArrowLeft" && left > 0) left -= 2;
             if (e.key === "ArrowRight" && left < 100) left += 2;
@@ -112,8 +120,8 @@ $(document).ready(function () {
             if (pressingRight && left < 100) left += 1.5;
             if (pressingLeft || pressingRight) jet.css("left", left + "%");
         }, 16);
-        const spawnInterval = isMobile() ? 750 : 300;
-        setInterval(function () {
+        const baseSpawnInterval = isMobile() ? 750 : 300;
+        function spawnLoop() {
             if (hitCount >= 100) return;
             let isSuper = Math.random() < 0.02;
             let dot;
@@ -128,6 +136,7 @@ $(document).ready(function () {
             let randomLeft = Math.random() * (window.innerWidth - 50);
             dot.css({ left: randomLeft + "px" });
             $(".game").append(dot);
+            const fallDuration = Math.round(3000 / speedMultiplier);
             let collision = setInterval(function () {
                 if (!dot.length) return;
                 let dotOffset = dot.offset();
@@ -151,13 +160,14 @@ $(document).ready(function () {
                         }, 300);
                     } else {
                         $("body").css("background", "red");
-                        hitCount += 10;
+                        hitCount += 20;
                         updateFuelBar(hitCount);
                         setTimeout(function () {
                             $("body").css("background", "#000");
                         }, 150);
                     }
                     if (hitCount >= 100) {
+                        clearInterval(speedRampInterval);
                         $("#goScore").text(distance);
                         $("#goDist").text("D: " + distance + "m");
                         $("#gameOver").css("display", "flex");
@@ -173,11 +183,14 @@ $(document).ready(function () {
                     clearInterval(collision);
                 }
             }, 10);
-            dot.animate({ top: "120vh" }, 3000, "linear", function () {
+            dot.animate({ top: "120vh" }, fallDuration, "linear", function () {
                 $(this).remove();
                 clearInterval(collision);
             });
-        }, spawnInterval);
+            const nextSpawn = Math.round(baseSpawnInterval / speedMultiplier);
+            setTimeout(spawnLoop, nextSpawn);
+        }
+        spawnLoop();
         setInterval(function () {
             if (hitCount >= 100) return;
             distance += 1;
